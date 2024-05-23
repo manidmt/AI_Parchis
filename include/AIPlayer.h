@@ -59,7 +59,8 @@ class AIPlayer: public Player{
 
 
         double Poda_AlfaBeta(const Parchis &estado, int jugador, int profundidad, const int profundidad_max, color &c_piece, int &id_piece, int &dice, double alpha, double beta, double (*f)(const Parchis &,int)) const;
-
+        double Heuristica(const Parchis &estado, int jugador) const;
+        double Puntuar(const Parchis &estado, int jugador) const;
 
         /**
          * @brief Método que determina si el player es inteligente (decide el mejor movimiento)

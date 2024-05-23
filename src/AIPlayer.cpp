@@ -130,9 +130,30 @@ double AIPlayer::Poda_AlfaBeta(const Parchis & estado, int jugador, int profundi
 }
 
 
+double AIPlayer::Heuristica(const Parchis &estado, int jugador) const{
 
+    int ganador = estado.getWinner();
+    int oponente = (jugador+1) % 2;
 
+    // Si hay un ganador, devuelvo más/menos infinito, según si he ganado yo o el oponente.
+    if (ganador == jugador)
+    {
+        return gana;
+    }
+    else if (ganador == oponente)
+    {
+        return pierde;
+    }
+    else
+    {
+        double puntuacion_jugador = Puntuar(estado, jugador);
+        double puntuacion_oponente = Puntuar(estado, oponente);
+        return puntuacion_jugador - puntuacion_oponente;
+    }
 
+}
+double AIPlayer::Puntuar(const Parchis &estado, int jugador) const{
+}
 
 double AIPlayer::ValoracionTest(const Parchis &estado, int jugador)
 {
