@@ -23,7 +23,7 @@ bool AIPlayer::move(){
 
 void AIPlayer::think(color & c_piece, int & id_piece, int & dice) const{
 
-
+    /*
     switch(id){
         case 0:
             thinkAleatorio(c_piece, id_piece, dice);
@@ -41,15 +41,17 @@ void AIPlayer::think(color & c_piece, int & id_piece, int & dice) const{
             thinkMejorOpcion(c_piece, id_piece, dice);
             break;
     }
+    */
 
-    /*
+    
     // El siguiente código se proporciona como sugerencia para iniciar la implementación del agente.
 
     double valor; // Almacena el valor con el que se etiqueta el estado tras el proceso de busqueda.
     double alpha = menosinf, beta = masinf; // Cotas iniciales de la poda AlfaBeta
+
     // Llamada a la función para la poda (los parámetros son solo una sugerencia, se pueden modificar).
-    valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, ValoracionTest);
-    cout << "Valor MiniMax: " << valor << "  Accion: " << str(c_piece) << " " << id_piece << " " << dice << endl;
+    //valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, ValoracionTest);
+    //cout << "Valor MiniMax: " << valor << "  Accion: " << str(c_piece) << " " << id_piece << " " << dice << endl;
 
     // ----------------------------------------------------------------- //
 
@@ -61,14 +63,74 @@ void AIPlayer::think(color & c_piece, int & id_piece, int & dice) const{
         case 1:
             valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion1);
             break;
-        case 2:
+        /*case 2:
             valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion2);
-            break;
+            break;*/
     }
     cout << "Valor MiniMax: " << valor << "  Accion: " << str(c_piece) << " " << id_piece << " " << dice << endl;
-
-    */
 }
+
+
+
+
+double AIPlayer::Poda_AlfaBeta(const Parchis & estado, int jugador, int profundidad, const int profundidad_max, color &c_piece, int &id_piece, int &dice, double alpha, double beta, double (*heuristica)(const Parchis &,int)) const{
+
+    double valor;
+
+    if(profundidad == profundidad_max or estado.gameOver())
+        return heuristica(estado, jugador);
+    
+    
+    if (jugador == estado.getCurrentPlayerId()){
+
+        ParchisBros hijos = estado.getChildren();
+        
+        for(ParchisBros::Iterator it = hijos.begin(); it != hijos.end() and alpha < beta; ++it){
+
+            double auxiliar = Poda_AlfaBeta(*it, jugador, profundidad+1, profundidad_max, c_piece, id_piece, dice, alpha, beta, heuristica);
+            if(auxiliar > alpha){
+
+                alpha = auxiliar;
+
+                if(profundidad == 0){
+
+                    c_piece = it.getMovedColor();
+                    id_piece = it.getMovedPieceId();
+                    dice = it.getMovedDiceValue();
+                }
+
+                if(beta <= alpha){
+
+                    return beta;
+                    break;
+                }
+            }
+        }
+
+        return alpha;
+
+    } else {
+
+        ParchisBros hijos = estado.getChildren();
+
+        for(ParchisBros::Iterator it = hijos.begin(); it != hijos.end() and alpha < beta; ++it){
+
+            double auxiliar = Poda_AlfaBeta(*it, jugador, profundidad+1, profundidad_max, c_piece, id_piece, dice, alpha, beta, heuristica);
+            if(auxiliar < beta){
+                beta = auxiliar;
+
+                if(beta <= alpha)
+                    return alpha;
+                
+            }
+        }
+
+        return beta;
+    }
+}
+
+
+
 
 
 
@@ -186,7 +248,6 @@ void AIPlayer::thinkAleatorio( color &c_piece, int &id_piece, int &dice) const{
     }
 }
 
-
 void AIPlayer::thinkAleatorioMasInteligente(color &c_piece, int &id_piece, int &dice) const
 {
     // El número de mi jugador actual.
@@ -283,7 +344,6 @@ void AIPlayer::thinkFichaMasAdelantada(color &c_piece, int &id_piece, int &dice)
             c_piece = col_ficha_mas_adelantada;
         }
 }
-
 
 void AIPlayer::thinkMejorOpcion(color &c_piece, int &id_piece, int &dice) const
 {
