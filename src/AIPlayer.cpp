@@ -61,7 +61,7 @@ void AIPlayer::think(color & c_piece, int & id_piece, int & dice) const{
             valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, ValoracionTest);
             break;
         case 1:
-            valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion1);
+            valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, Heuristica);
             break;
         /*case 2:
             valor = Poda_AlfaBeta(*actual, jugador, 0, PROFUNDIDAD_ALFABETA, c_piece, id_piece, dice, alpha, beta, MiValoracion2);
@@ -130,7 +130,7 @@ double AIPlayer::Poda_AlfaBeta(const Parchis & estado, int jugador, int profundi
 }
 
 
-double AIPlayer::Heuristica(const Parchis &estado, int jugador) const{
+double AIPlayer::Heuristica(const Parchis &estado, int jugador) {
 
     int ganador = estado.getWinner();
     int oponente = (jugador+1) % 2;
@@ -150,9 +150,174 @@ double AIPlayer::Heuristica(const Parchis &estado, int jugador) const{
         double puntuacion_oponente = Puntuar(estado, oponente);
         return puntuacion_jugador - puntuacion_oponente;
     }
-
 }
-double AIPlayer::Puntuar(const Parchis &estado, int jugador) const{
+
+double AIPlayer::Puntuar(const Parchis &estado, int jugador){
+
+     // 
+    double puntuacion_0 = 0;
+    double puntuacion_1 = 0;
+    vector<color> colores = estado.getPlayerColors(jugador);
+    int current_power = estado.getPowerBar(jugador).getPower();
+    bool dado_especial;
+
+
+   // bool dado_especial = estado.isSpecialDice(estado.getDice());
+
+    // Primer color
+    color current_color = colores[0];
+
+    for (int i = 0; i < num_pieces; i++)
+    {
+        puntuacion_0 -= estado.distanceToGoal(current_color, i) * 3; // Distancia a la meta
+
+        // Contamos las piezas que estan en un lugar seguro
+        if (estado.isSafePiece(current_color, i))
+        {
+            puntuacion_0 += 70;
+        }
+    }
+
+    // Priorizamos al que menos piezas tenga en casa y más en la meta
+    puntuacion_0 -= estado.piecesAtHome(current_color) * 150;
+    puntuacion_0 += estado.piecesAtGoal(current_color) * 100;
+/*
+    if (find(estado.getAvailableNormalDices(current_color).begin(), estado.getAvailableNormalDices(current_color).end(), 100) != estado.getAvailableNormalDices(current_color).end()){
+
+        Board board = estado.getBoard();
+        int min_dist = 1000;
+        vector<pair<color,int>> piezas_afectadas;
+        for (int i = 0; i < estado.game_colors.size(); i++){
+            color c = estado.game_colors[i];
+            if (c != jugador){
+                for (int j = 0; j < board.getPieces(c).size(); j++){
+                    int dist = estado.distanceBoxtoBox(current_color, jugador, c, j);
+                    Piece current_piece = board.getPiece(c, j);
+                    if(current_piece.get_type() != boo_piece){
+                        if(dist < min_dist and dist > 0){
+                            min_dist = dist;
+                            piezas_afectadas.clear();
+                            piezas_afectadas.push_back(pair<color,int>(c,j));
+                        }else if(dist == min_dist){
+                            piezas_afectadas.push_back(pair<color,int>(c,j));
+                        }
+                    }
+                }
+            }
+        }
+
+        // Si el vector piezas_afectadas es vacío significa que el caparazón azul afectaría a mis piezas
+        if (piezas_afectadas.empty())   puntuacion_0 -= 500;
+        else                            puntuacion_0 += 300;
+    }
+    */
+    // Segundo color
+    current_color = colores[1];
+
+    for (int i = 0; i < num_pieces; i++)
+    {
+        puntuacion_1 -= estado.distanceToGoal(current_color, i) * 3; // Distancia a la meta
+
+        if (estado.isSafePiece(current_color, i))
+        {
+            puntuacion_1 += 70;
+        }
+    }
+
+    // Priorizamos al que menos piezas tenga en casa y más en la meta
+    puntuacion_1 -= estado.piecesAtHome(current_color) * 150;
+    puntuacion_1 += estado.piecesAtGoal(current_color) * 100;
+/*
+    if (find(estado.getAvailableNormalDices(current_color).begin(), estado.getAvailableNormalDices(current_color).end(), 100) != estado.getAvailableNormalDices(current_color).end()){
+
+        Board board = estado.getBoard();
+        int min_dist = 1000;
+        vector<pair<color,int>> piezas_afectadas;
+        for (int i = 0; i < estado.game_colors.size(); i++){
+            color c = estado.game_colors[i];
+            if (c != jugador){
+                for (int j = 0; j < board.getPieces(c).size(); j++){
+                    int dist = estado.distanceBoxtoBox(current_color, jugador, c, j);
+                    Piece current_piece = board.getPiece(c, j);
+                    if(current_piece.get_type() != boo_piece){
+                        if(dist < min_dist and dist > 0){
+                            min_dist = dist;
+                            piezas_afectadas.clear();
+                            piezas_afectadas.push_back(pair<color,int>(c,j));
+                        }else if(dist == min_dist){
+                            piezas_afectadas.push_back(pair<color,int>(c,j));
+                        }
+                    }
+                }
+            }
+        }
+
+        // Si el vector piezas_afectadas es vacío significa que el caparazón azul afectaría a mis piezas
+        if (piezas_afectadas.empty())   puntuacion_0 -= 500;
+        else                            puntuacion_0 += 300;
+    }
+*/
+    // Ahora pasamos a combinar ambas puntuaciones
+    int puntuacion_total;
+
+    if (puntuacion_0 > puntuacion_1)
+    {
+        puntuacion_total = 2 * puntuacion_0 + 0.75 * puntuacion_1;
+    }
+    else if (puntuacion_1 > puntuacion_0)
+    {
+        puntuacion_total = 2 * puntuacion_1 + 0.75 * puntuacion_0;
+    }
+    else
+    {
+        puntuacion_total = puntuacion_0 + puntuacion_1;
+    }
+
+    // Dado especial
+
+    if (find(estado.getAvailableNormalDices(jugador).begin(), estado.getAvailableNormalDices(jugador).end(), 100) != estado.getAvailableNormalDices(jugador).end()){
+
+        if (0 <= current_power && current_power < 50)   puntuacion_total += 50;
+        else if (50 <= current_power && current_power < 60) ; // casilla cercana
+        else if (60 <= current_power && current_power < 65) puntuacion_total -= 500;
+        else if (65 <= current_power && current_power < 70) puntuacion_total += 300;
+        else if (70 <= current_power && current_power < 75) ; // casilla cercana
+        else if (75 <= current_power && current_power < 80) puntuacion_total += 500;
+        else if (80 <= current_power && current_power < 85) puntuacion_total -= 700;
+        else if (85 <= current_power && current_power < 90) {
+            
+            Board board = estado.getBoard();
+            int min_dist = 1000;
+            vector<pair<color,int>> piezas_afectadas;
+            for (int i = 0; i < estado.game_colors.size(); i++){
+                color c = estado.game_colors[i];
+                if (c != jugador){
+                    for (int j = 0; j < board.getPieces(c).size(); j++){
+                        int dist = estado.distanceToGoal(c, j);
+                        Piece current_piece = board.getPiece(c, j);
+                        if(current_piece.get_type() != boo_piece){
+                            if(dist < min_dist and dist > 0){
+                                min_dist = dist;
+                                piezas_afectadas.clear();
+                                piezas_afectadas.push_back(pair<color,int>(c,j));
+                            }else if(dist == min_dist){
+                                piezas_afectadas.push_back(pair<color,int>(c,j));
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Si el vector piezas_afectadas es vacío significa que el caparazón azul afectaría a mis piezas
+            if (piezas_afectadas.empty())   puntuacion_total -= 1000;
+            else                            puntuacion_total += 300;
+        }
+        else if (90 <= current_power && current_power < 95) puntuacion_total -= 900;
+        else if (95 <= current_power && current_power < 100) puntuacion_total += 200;
+        else if (current_power == 100)                      puntuacion_total -= 1000;
+    }
+
+    return puntuacion_total;
 }
 
 double AIPlayer::ValoracionTest(const Parchis &estado, int jugador)
