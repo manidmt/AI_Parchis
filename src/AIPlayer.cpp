@@ -181,7 +181,7 @@ double AIPlayer::Puntuar(const Parchis &estado, int jugador){
     // Priorizamos al que menos piezas tenga en casa y más en la meta
     puntuacion_0 -= estado.piecesAtHome(current_color) * 150;
     puntuacion_0 += estado.piecesAtGoal(current_color) * 100;
-/*
+
     if (find(estado.getAvailableNormalDices(current_color).begin(), estado.getAvailableNormalDices(current_color).end(), 100) != estado.getAvailableNormalDices(current_color).end()){
 
         Board board = estado.getBoard();
@@ -189,7 +189,7 @@ double AIPlayer::Puntuar(const Parchis &estado, int jugador){
         vector<pair<color,int>> piezas_afectadas;
         for (int i = 0; i < estado.game_colors.size(); i++){
             color c = estado.game_colors[i];
-            if (c != jugador){
+            if (c != current_color){
                 for (int j = 0; j < board.getPieces(c).size(); j++){
                     int dist = estado.distanceBoxtoBox(current_color, jugador, c, j);
                     Piece current_piece = board.getPiece(c, j);
@@ -210,7 +210,7 @@ double AIPlayer::Puntuar(const Parchis &estado, int jugador){
         if (piezas_afectadas.empty())   puntuacion_0 -= 500;
         else                            puntuacion_0 += 300;
     }
-    */
+    
     // Segundo color
     current_color = colores[1];
 
@@ -235,7 +235,7 @@ double AIPlayer::Puntuar(const Parchis &estado, int jugador){
         vector<pair<color,int>> piezas_afectadas;
         for (int i = 0; i < estado.game_colors.size(); i++){
             color c = estado.game_colors[i];
-            if (c != jugador){
+            if (c != current_color){
                 for (int j = 0; j < board.getPieces(c).size(); j++){
                     int dist = estado.distanceBoxtoBox(current_color, jugador, c, j);
                     Piece current_piece = board.getPiece(c, j);
@@ -253,8 +253,8 @@ double AIPlayer::Puntuar(const Parchis &estado, int jugador){
         }
 
         // Si el vector piezas_afectadas es vacío significa que el caparazón azul afectaría a mis piezas
-        if (piezas_afectadas.empty())   puntuacion_0 -= 500;
-        else                            puntuacion_0 += 300;
+        if (piezas_afectadas.empty())   puntuacion_1 -= 500;
+        else                            puntuacion_1 += 300;
     }
 */
     // Ahora pasamos a combinar ambas puntuaciones
@@ -291,7 +291,7 @@ double AIPlayer::Puntuar(const Parchis &estado, int jugador){
             vector<pair<color,int>> piezas_afectadas;
             for (int i = 0; i < estado.game_colors.size(); i++){
                 color c = estado.game_colors[i];
-                if (c != jugador){
+                if (c != colores[0] && c != colores[1]){
                     for (int j = 0; j < board.getPieces(c).size(); j++){
                         int dist = estado.distanceToGoal(c, j);
                         Piece current_piece = board.getPiece(c, j);
